@@ -168,25 +168,6 @@
                         <p class="text-gray-400 text-sm">Aucune catégorie disponible</p>
                     @endif
                 </div>
-
-                <!-- Stats -->
-                <div class="bg-purple-600 rounded-2xl p-5 text-white">
-                    <h3 class="text-sm font-bold text-purple-200 uppercase tracking-wider mb-4">Statistiques</h3>
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div>
-                            <p class="text-2xl font-bold">{{ $posts->count() }}</p>
-                            <p class="text-purple-200 text-xs">Articles</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ $posts->sum('likes_count') }}</p>
-                            <p class="text-purple-200 text-xs">Likes</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ $posts->sum('vues') }}</p>
-                            <p class="text-purple-200 text-xs">Vues</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </main>
