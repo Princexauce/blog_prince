@@ -7,17 +7,24 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::orderBy('created_at', 'desc')->get();
-        
-        // Récupérer les catégories dynamiques depuis les articles
+        $search = $request->input('search');
+
+        $posts = Post::orderBy('created_at', 'desc')
+            ->when($search, function($query) use ($search) {
+                $query->where('titre', 'like', '%' . $search . '%')
+                      ->orWhere('contenu', 'like', '%' . $search . '%')
+                      ->orWhere('categorie', 'like', '%' . $search . '%');
+            })
+            ->get();
+
         $categories = Post::whereNotNull('categorie')
             ->select('categorie')
             ->distinct()
             ->pluck('categorie')
             ->toArray();
-        
+
         return view('home', compact('posts', 'categories'));
     }
 }
