@@ -96,7 +96,7 @@
         @endif
 
         <div class="bg-white rounded-lg shadow p-6">
-            <form method="POST" action="{{ route('admin.posts.store') }}" enctype="multipart/form-data" id="postForm">
+            <form method="POST" action="{{ route('admin.posts.store') }}" id="postForm">
                 @csrf
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Titre</label>
@@ -109,15 +109,7 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">Image de couverture</label>
-                    <input type="file" name="image" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <p class="text-sm text-gray-500 mt-2">JPEG, PNG, GIF ou WebP — maximum 10 Mo (optionnel).</p>
-                    <img id="imagePreview" src="" alt="Aperçu" class="hidden mt-3 max-h-48 rounded-lg border border-gray-200 object-cover">
-                </div>
-
-                <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Contenu</label>
-                    <p class="text-sm text-gray-500 mb-2">Bouton <strong>image</strong> pour insérer une photo, puis cliquez sur l'image pour choisir la taille (25 % à 100 %).</p>
                     <div id="editor" class="border border-gray-300 rounded-lg"></div>
                     <input type="hidden" name="contenu" id="contenuInput">
                 </div>
@@ -130,30 +122,33 @@
         </div>
     </div>
 
-    @include('admin.posts.partials.quill', ['formId' => 'postForm', 'initialContent' => old('contenu')])
-
     <script>
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const maxImageBytes = 10 * 1024 * 1024;
-
-        imageInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (!file) {
-                imagePreview.classList.add('hidden');
-                imagePreview.removeAttribute('src');
-                return;
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['link', 'video'],
+                    ['clean']
+                ]
             }
-            if (file.size > maxImageBytes) {
-                alert('L\'image dépasse 10 Mo. Choisissez un fichier plus léger.');
-                this.value = '';
-                imagePreview.classList.add('hidden');
-                return;
-            }
-            imagePreview.src = URL.createObjectURL(file);
-            imagePreview.classList.remove('hidden');
         });
 
+        // Avant de soumettre le formulaire
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            const content = quill.root.innerHTML;
+            
+            if (!content || content === '<p><br></p>') {
+                e.preventDefault();
+                alert('Veuillez écrire du contenu');
+                return false;
+            }
+            
+            document.getElementById('contenuInput').value = content;
+        });
     </script>
 </body>
 </html>
