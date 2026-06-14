@@ -49,14 +49,7 @@
                     <a href="#" class="text-gray-600 hover:text-purple-600 font-medium transition dropdown-trigger">À propos</a>
                     <div class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 dropdown-menu">
                         <div class="p-5">
-                            <div class="flex items-center mb-3">
-                                <div class="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mr-4">AP</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800">ADIMI Prince</h4>
-                                    <p class="text-purple-600 text-sm font-medium">Étudiant en génie informatique</p>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm leading-relaxed">Étudiant en 3e année en génie informatique et télécommunication à l'EPAC, Université d'Abomey Calavi au Bénin.</p>
+                            @include('partials.about', ['variant' => 'dropdown'])
                         </div>
                     </div>
                 </div>
@@ -151,12 +144,7 @@
                 <!-- About -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">À propos</h3>
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3">AP</div>
-                        <h4 class="font-bold text-gray-800 text-lg">ADIMI Prince</h4>
-                        <p class="text-purple-600 text-sm font-medium mb-3">Étudiant en génie informatique</p>
-                        <p class="text-gray-500 text-sm leading-relaxed">3e année à l'EPAC, Université d'Abomey Calavi au Bénin. Ce blog est un projet de classe.</p>
-                    </div>
+                    @include('partials.about', ['variant' => 'sidebar'])
                 </div>
 
                 <!-- Categories -->
