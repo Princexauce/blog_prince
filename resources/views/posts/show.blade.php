@@ -29,6 +29,7 @@
                 </div>
                 <span class="text-xl font-bold text-gray-800">Blog<span class="text-purple-600">Prince</span></span>
             </a>
+            <div class="flex items-center gap-6">
             <nav class="flex items-center space-x-8">
                 <a href="{{ route('home') }}" class="text-gray-600 hover:text-purple-600 font-medium transition">Accueil</a>
 
@@ -65,6 +66,8 @@
                     </div>
                 </div>
             </nav>
+            @include('partials.auth-nav')
+            </div>
         </div>
     </header>
 
@@ -113,7 +116,7 @@
         <!-- Like Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Liker cet article</h3>
-            
+
             @if(session('like_success'))
                 <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
                     {{ session('like_success') }}
@@ -125,74 +128,53 @@
                     {{ session('like_error') }}
                 </div>
             @endif
-            
-            <button id="likeButton" onclick="handleLikeAction()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition">
-                ❤️ J'aime cet article
-            </button>
+
+            @auth
+                @if($hasLiked)
+                    <form method="POST" action="{{ route('likes.destroy', $post->id) }}">
+                        @csrf
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            💔 Retirer le j'aime
+                        </button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('likes.store', $post->id) }}">
+                        @csrf
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            ❤️ J'aime cet article
+                        </button>
+                    </form>
+                @endif
+            @else
+                <button type="button" onclick="openAuthModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                    ❤️ J'aime cet article
+                </button>
+            @endauth
         </div>
 
         <!-- Comments Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
             <h3 class="text-lg font-bold text-gray-800 mb-6">Commentaires ({{ $post->comments_count }})</h3>
-            
+
             @if(session('comment_success'))
                 <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
                     {{ session('comment_success') }}
                 </div>
             @endif
 
-            @if(session('comment_error'))
-                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {{ session('comment_error') }}
-                </div>
-            @endif
-
-            <!-- Add Comment Button -->
-            <button onclick="openCommentModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition mb-6">
+            <button type="button" onclick="handleCommentClick()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition mb-6">
                 💬 Ajouter un commentaire
             </button>
 
             <!-- Comments List -->
             @if($comments->count() > 0)
-                @foreach($comments as $comment)
-                    <div class="border-b pb-6 mb-6 last:border-0">
-                        <div class="flex items-start mb-3">
-                            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold mr-3">
-                                {{ strtoupper(substr($comment->pseudo, 0, 2)) }}
-                            </div>
-                            <div>
-                                <p class="font-semibold text-gray-800">{{ $comment->pseudo }}</p>
-                                <p class="text-gray-500 text-sm">{{ \Carbon\Carbon::parse($comment->created_at)->locale('fr')->isoFormat('D MMMM YYYY à HH:mm') }}</p>
-                            </div>
+                <div class="space-y-6">
+                    @foreach($comments as $comment)
+                        <div class="border-b pb-6 last:border-0">
+                            @include('posts.partials.comment-item', ['comment' => $comment, 'depth' => 0])
                         </div>
-                        <p class="text-gray-700 mb-3">{{ $comment->contenu }}</p>
-                        
-                        <!-- Reply Button -->
-                        <button onclick="openReplyModal({{ $comment->id }})" class="text-purple-600 text-sm hover:text-purple-800 font-medium">
-                            ↩ Répondre
-                        </button>
-
-                        <!-- Replies -->
-                        @if($comment->replies->count() > 0)
-                            <div class="ml-12 mt-4 space-y-4">
-                                @foreach($comment->replies as $reply)
-                                    <div class="border-l-2 border-purple-200 pl-4">
-                                        <div class="flex items-start mb-2">
-                                            <div class="w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center text-white font-bold mr-3 text-sm">
-                                                {{ strtoupper(substr($reply->pseudo, 0, 2)) }}
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-gray-800 text-sm">{{ $reply->pseudo }}</p>
-                                                <p class="text-gray-500 text-xs">{{ \Carbon\Carbon::parse($reply->created_at)->locale('fr')->isoFormat('D MMMM YYYY à HH:mm') }}</p>
-                                            </div>
-                                        </div>
-                                        <p class="text-gray-700 text-sm">{{ $reply->contenu }}</p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             @else
                 <p class="text-gray-500">Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
             @endif
@@ -206,45 +188,46 @@
         </div>
     </footer>
 
-    <!-- Like Modal -->
-    <div id="likeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
-            <h3 id="likeModalTitle" class="text-xl font-bold text-gray-800 mb-4">Liker cet article</h3>
-            <form id="likeForm" method="POST" action="{{ route('likes.store', $post->id) }}">
-                @csrf
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">Pseudo</label>
-                    <input type="text" name="pseudo" id="likePseudo" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+    <!-- Auth Required Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-8 text-center">
+                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
-                    <input type="email" name="email" id="likeEmail" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <h3 class="text-xl font-bold text-white">Accès membre requis</h3>
+            </div>
+            <div class="px-6 py-6 text-center">
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    Pour participer à la discussion, veuillez vous connecter à votre compte.
+                    <span class="block mt-2 text-gray-500 text-sm">Nouveau sur BlogPrince ? L'inscription ne prend qu'un instant.</span>
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition">
+                        Se connecter
+                    </a>
+                    <a href="{{ route('register', ['redirect' => url()->current()]) }}" class="border-2 border-purple-600 text-purple-600 hover:bg-purple-50 font-semibold py-3 px-6 rounded-xl transition">
+                        Créer un compte
+                    </a>
                 </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeLikeModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg">Liker</button>
-                </div>
-            </form>
+                <button type="button" onclick="closeAuthModal()" class="mt-5 text-sm text-gray-400 hover:text-gray-600 transition">
+                    Continuer la lecture
+                </button>
+            </div>
         </div>
     </div>
 
+    @auth
     <!-- Comment Modal -->
     <div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Ajouter un commentaire</h3>
+            <h3 id="commentModalTitle" class="text-xl font-bold text-gray-800 mb-4">Ajouter un commentaire</h3>
+            <p class="text-sm text-gray-500 mb-4">Publié en tant que <strong class="text-purple-600">{{ Auth::user()->name }}</strong></p>
             <form method="POST" action="{{ route('comments.store', $post->id) }}">
                 @csrf
                 <input type="hidden" name="parent_id" id="parent_id" value="">
-                <div id="userInfoFields" class="mb-4">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">Pseudo</label>
-                        <input type="text" name="pseudo" id="commentPseudo" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
-                        <input type="email" name="email" id="commentEmail" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    </div>
-                </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Commentaire</label>
                     <textarea name="contenu" rows="4" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
@@ -256,151 +239,58 @@
             </form>
         </div>
     </div>
+    @endauth
 
     <script>
-        const postId = {{ $post->id }};
-        const serverHasLiked = {{ $hasLiked ? 'true' : 'false' }};
+        const isAuthenticated = @json(auth()->check());
 
-        function initializeLikeStatus() {
-            let likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]');
-            const index = likedPosts.indexOf(postId);
-            if (serverHasLiked && index === -1) {
-                likedPosts.push(postId);
-                localStorage.setItem('liked_posts', JSON.stringify(likedPosts));
-            } else if (!serverHasLiked && index !== -1) {
-                likedPosts.splice(index, 1);
-                localStorage.setItem('liked_posts', JSON.stringify(likedPosts));
-            }
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('authModal').classList.add('flex');
         }
 
-        function hasLikedPost() {
-            const likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]');
-            return likedPosts.includes(postId);
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authModal').classList.remove('flex');
         }
 
-        function saveLikeStatus(liked) {
-            let likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '[]');
-            if (liked) {
-                if (!likedPosts.includes(postId)) likedPosts.push(postId);
+        function handleCommentClick() {
+            if (isAuthenticated) {
+                openCommentModal();
             } else {
-                likedPosts = likedPosts.filter(id => id !== postId);
+                openAuthModal();
             }
-            localStorage.setItem('liked_posts', JSON.stringify(likedPosts));
         }
 
-        function updateLikeButton() {
-            const likeButton = document.getElementById('likeButton');
-            if (hasLikedPost()) {
-                likeButton.innerHTML = '💔 Retirer le j\'aime';
-                likeButton.classList.remove('bg-purple-600', 'hover:bg-purple-700');
-                likeButton.classList.add('bg-red-500', 'hover:bg-red-600');
+        function handleReplyClick(commentId, authorName = null) {
+            if (isAuthenticated) {
+                openReplyModal(commentId, authorName);
             } else {
-                likeButton.innerHTML = '❤️ J\'aime cet article';
-                likeButton.classList.remove('bg-red-500', 'hover:bg-red-600');
-                likeButton.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                openAuthModal();
             }
         }
 
-        function handleLikeAction() {
-            const userInfo = getUserInfo();
-            if (hasLikedPost()) {
-                if (userInfo.email) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route('likes.destroy', $post->id) }}';
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                    if (csrfToken) {
-                        const csrfInput = document.createElement('input');
-                        csrfInput.type = 'hidden';
-                        csrfInput.name = '_token';
-                        csrfInput.value = csrfToken;
-                        form.appendChild(csrfInput);
-                    }
-                    const emailInput = document.createElement('input');
-                    emailInput.type = 'hidden';
-                    emailInput.name = 'email';
-                    emailInput.value = userInfo.email;
-                    form.appendChild(emailInput);
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    openLikeModal();
-                }
+        function toggleReplies(commentId, hiddenCount) {
+            const extra = document.getElementById('replies-extra-' + commentId);
+            const toggle = document.getElementById('replies-toggle-' + commentId);
+
+            if (!extra || !toggle) {
+                return;
+            }
+
+            const isHidden = extra.classList.contains('hidden');
+            extra.classList.toggle('hidden');
+
+            if (isHidden) {
+                toggle.textContent = 'Masquer ' + hiddenCount + ' réponse' + (hiddenCount > 1 ? 's' : '');
             } else {
-                if (userInfo.pseudo && userInfo.email) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route('likes.store', $post->id) }}';
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                    if (csrfToken) {
-                        const csrfInput = document.createElement('input');
-                        csrfInput.type = 'hidden';
-                        csrfInput.name = '_token';
-                        csrfInput.value = csrfToken;
-                        form.appendChild(csrfInput);
-                    }
-                    const pseudoInput = document.createElement('input');
-                    pseudoInput.type = 'hidden';
-                    pseudoInput.name = 'pseudo';
-                    pseudoInput.value = userInfo.pseudo;
-                    form.appendChild(pseudoInput);
-                    const emailInput = document.createElement('input');
-                    emailInput.type = 'hidden';
-                    emailInput.name = 'email';
-                    emailInput.value = userInfo.email;
-                    form.appendChild(emailInput);
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    openLikeModal();
-                }
+                toggle.textContent = 'Afficher ' + hiddenCount + ' autre' + (hiddenCount > 1 ? 's' : '') + ' réponse' + (hiddenCount > 1 ? 's' : '');
             }
-        }
-
-        function openLikeModal() {
-            const userInfo = getUserInfo();
-            if (userInfo.pseudo && userInfo.email) {
-                document.getElementById('likePseudo').value = userInfo.pseudo;
-                document.getElementById('likeEmail').value = userInfo.email;
-            }
-            document.getElementById('likeModal').classList.remove('hidden');
-            document.getElementById('likeModal').classList.add('flex');
-        }
-
-        function closeLikeModal() {
-            document.getElementById('likeModal').classList.add('hidden');
-            document.getElementById('likeModal').classList.remove('flex');
-        }
-
-        function getUserInfo() {
-            return {
-                pseudo: localStorage.getItem('blog_pseudo'),
-                email: localStorage.getItem('blog_email')
-            };
-        }
-
-        function saveUserInfo(pseudo, email) {
-            localStorage.setItem('blog_pseudo', pseudo);
-            localStorage.setItem('blog_email', email);
         }
 
         function openCommentModal() {
-            const userInfo = getUserInfo();
-            const userInfoFields = document.getElementById('userInfoFields');
             document.getElementById('parent_id').value = '';
-            if (userInfo.pseudo && userInfo.email) {
-                userInfoFields.classList.add('hidden');
-                document.getElementById('commentPseudo').value = userInfo.pseudo;
-                document.getElementById('commentEmail').value = userInfo.email;
-                document.getElementById('commentPseudo').required = false;
-                document.getElementById('commentEmail').required = false;
-            } else {
-                userInfoFields.classList.remove('hidden');
-                document.getElementById('commentPseudo').value = '';
-                document.getElementById('commentEmail').value = '';
-                document.getElementById('commentPseudo').required = true;
-                document.getElementById('commentEmail').required = true;
-            }
+            document.getElementById('commentModalTitle').textContent = 'Ajouter un commentaire';
             document.getElementById('commentModal').classList.remove('hidden');
             document.getElementById('commentModal').classList.add('flex');
         }
@@ -410,44 +300,24 @@
             document.getElementById('commentModal').classList.remove('flex');
         }
 
-        function openReplyModal(commentId) {
-            const userInfo = getUserInfo();
-            const userInfoFields = document.getElementById('userInfoFields');
+        function openReplyModal(commentId, authorName) {
             document.getElementById('parent_id').value = commentId;
-            if (userInfo.pseudo && userInfo.email) {
-                userInfoFields.classList.add('hidden');
-                document.getElementById('commentPseudo').value = userInfo.pseudo;
-                document.getElementById('commentEmail').value = userInfo.email;
-                document.getElementById('commentPseudo').required = false;
-                document.getElementById('commentEmail').required = false;
-            } else {
-                userInfoFields.classList.remove('hidden');
-                document.getElementById('commentPseudo').value = '';
-                document.getElementById('commentEmail').value = '';
-                document.getElementById('commentPseudo').required = true;
-                document.getElementById('commentEmail').required = true;
-            }
+            document.getElementById('commentModalTitle').textContent = authorName
+                ? 'Répondre à ' + authorName
+                : 'Répondre au commentaire';
             document.getElementById('commentModal').classList.remove('hidden');
             document.getElementById('commentModal').classList.add('flex');
         }
 
-        document.getElementById('likeForm').addEventListener('submit', function() {
-            const pseudo = document.getElementById('likePseudo').value;
-            const email = document.getElementById('likeEmail').value;
-            saveUserInfo(pseudo, email);
-            saveLikeStatus(true);
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAuthModal();
         });
 
-        document.getElementById('likeModal').addEventListener('click', function(e) {
-            if (e.target === this) closeLikeModal();
-        });
-
+        @auth
         document.getElementById('commentModal').addEventListener('click', function(e) {
             if (e.target === this) closeCommentModal();
         });
-
-        initializeLikeStatus();
-        updateLikeButton();
+        @endauth
 
         // Dropdown handling
         const dropdowns = document.querySelectorAll('[id$="Dropdown"]');

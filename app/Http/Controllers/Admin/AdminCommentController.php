@@ -10,7 +10,10 @@ class AdminCommentController extends Controller
 {
     public function index()
     {
-        $comments = Comment::orderBy('created_at', 'desc')->get();
+        $comments = Comment::with(['post', 'parent'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('admin.comments', compact('comments'));
     }
 

@@ -47,7 +47,7 @@ Admin : http://127.0.0.1:8000/admin/login
 
 ### Compte admin (après `migrate --seed`)
 
-- Email : `admin@blog.com`
+- Email : `adminblog@gmail.com`
 - Mot de passe : `password`
 
 ## Structure utile

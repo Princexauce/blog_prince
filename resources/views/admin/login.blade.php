@@ -27,20 +27,26 @@
         <p class="text-center text-gray-500 mb-8">Accès réservé</p>
 
         <!-- Form -->
+        @if($errors->any())
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         @if (session('error'))
             <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
                 {{ session('error') }}
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.login.post') }}">
+        <form method="POST" action="{{ route('admin.login.post') }}" novalidate>
             @csrf
 
             <!-- Email -->
             <div class="mb-6">
                 <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
                 <div class="relative">
-                    <input type="email" name="email" placeholder="admin@exemple.com" required
+                    <input type="email" name="email" value="{{ old('email') }}" placeholder="adminblog@gmail.com" required autofocus
                         class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>

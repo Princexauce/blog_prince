@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -11,23 +11,34 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
         $posts = Post::orderBy('created_at', 'desc')->get();
-        
-        // Vérifier si l'utilisateur a déjà vu cet article dans cette session
-        $viewedKey = 'viewed_post_' . $id;
-        if (!session()->has($viewedKey)) {
+
+        $viewedKey = 'viewed_post_'.$id;
+        if (! session()->has($viewedKey)) {
             $post->increment('vues');
             session()->put($viewedKey, true);
         }
-        
-        $comments = $post->comments()->whereNull('parent_id')->with('replies')->get();
-        
-        // Vérifier si l'utilisateur a déjà liké cet article (basé sur l'email en session)
-        $userEmail = session('user_email');
-        $hasLiked = false;
-        if ($userEmail) {
-            $hasLiked = $post->likes()->where('email', $userEmail)->exists();
-        }
-        
+
+        $comments = $this->buildCommentTree(
+            $post->comments()->orderBy('created_at')->get()
+        );
+
+        $hasLiked = Auth::check()
+            && $post->likes()->where('user_id', Auth::id())->exists();
+
         return view('posts.show', compact('post', 'posts', 'comments', 'hasLiked'));
+    }
+
+    private function buildCommentTree($comments)
+    {
+        $grouped = $comments->groupBy(fn ($comment) => $comment->parent_id ?? 'root');
+
+        $attachReplies = function ($comment) use ($grouped, &$attachReplies) {
+            $children = $grouped->get($comment->id, collect());
+            $comment->setRelation('replies', $children->map(fn ($child) => $attachReplies($child)));
+
+            return $comment;
+        };
+
+        return $grouped->get('root', collect())->map(fn ($comment) => $attachReplies($comment));
     }
 }

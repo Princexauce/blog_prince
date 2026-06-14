@@ -81,6 +81,23 @@
                     @foreach($comments as $comment)
                         <div class="flex items-start justify-between py-4 border-b last:border-0">
                             <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    @if($comment->parent_id)
+                                        <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">Réponse</span>
+                                    @else
+                                        <span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">Commentaire principal</span>
+                                    @endif
+                                </div>
+
+                                @if($comment->parent)
+                                    <div class="mb-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                                        <p class="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1">En réponse à</p>
+                                        <p class="text-sm font-medium text-gray-800">{{ $comment->parent->pseudo }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">« {{ Str::limit($comment->parent->contenu, 120) }} »</p>
+                                        <p class="text-xs text-gray-400 mt-1">{{ \Carbon\Carbon::parse($comment->parent->created_at)->locale('fr')->isoFormat('D MMMM YYYY à HH:mm') }}</p>
+                                    </div>
+                                @endif
+
                                 <div class="flex items-center mb-2">
                                     <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold mr-3">
                                         {{ strtoupper(substr($comment->pseudo, 0, 2)) }}

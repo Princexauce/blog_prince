@@ -24,6 +24,7 @@
                 </div>
                 <span class="text-xl font-bold text-gray-800">Blog<span class="text-purple-600">Prince</span></span>
             </a>
+            <div class="flex items-center gap-6">
             <nav class="flex items-center space-x-8">
                 <a href="{{ route('home') }}" class="text-purple-600 font-medium border-b-2 border-purple-600 pb-1">Accueil</a>
 
@@ -60,6 +61,8 @@
                     </div>
                 </div>
             </nav>
+            @include('partials.auth-nav')
+            </div>
         </div>
     </header>
 
