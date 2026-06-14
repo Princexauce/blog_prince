@@ -270,6 +270,13 @@
             }
         }
 
+        document.addEventListener('click', function(e) {
+            const replyBtn = e.target.closest('.js-reply-btn');
+            if (replyBtn) {
+                handleReplyClick(replyBtn.dataset.commentId, replyBtn.dataset.authorName || null);
+            }
+        });
+
         function toggleReplies(commentId, hiddenCount) {
             const extra = document.getElementById('replies-extra-' + commentId);
             const toggle = document.getElementById('replies-toggle-' + commentId);
@@ -289,24 +296,46 @@
         }
 
         function openCommentModal() {
-            document.getElementById('parent_id').value = '';
-            document.getElementById('commentModalTitle').textContent = 'Ajouter un commentaire';
-            document.getElementById('commentModal').classList.remove('hidden');
-            document.getElementById('commentModal').classList.add('flex');
+            const parentInput = document.getElementById('parent_id');
+            const modal = document.getElementById('commentModal');
+            const title = document.getElementById('commentModalTitle');
+
+            if (!modal || !parentInput || !title) {
+                openAuthModal();
+                return;
+            }
+
+            parentInput.value = '';
+            title.textContent = 'Ajouter un commentaire';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         function closeCommentModal() {
-            document.getElementById('commentModal').classList.add('hidden');
-            document.getElementById('commentModal').classList.remove('flex');
+            const modal = document.getElementById('commentModal');
+            if (!modal) {
+                return;
+            }
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function openReplyModal(commentId, authorName) {
-            document.getElementById('parent_id').value = commentId;
-            document.getElementById('commentModalTitle').textContent = authorName
+            const parentInput = document.getElementById('parent_id');
+            const modal = document.getElementById('commentModal');
+            const title = document.getElementById('commentModalTitle');
+
+            if (!modal || !parentInput || !title) {
+                openAuthModal();
+                return;
+            }
+
+            parentInput.value = commentId;
+            title.textContent = authorName
                 ? 'Répondre à ' + authorName
                 : 'Répondre au commentaire';
-            document.getElementById('commentModal').classList.remove('hidden');
-            document.getElementById('commentModal').classList.add('flex');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         document.getElementById('authModal').addEventListener('click', function(e) {

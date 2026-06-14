@@ -20,7 +20,12 @@
 
     <p class="text-gray-700 {{ $isReply ? 'text-sm' : '' }} mb-2">{{ $comment->contenu }}</p>
 
-    <button type="button" onclick="handleReplyClick({{ $comment->id }}, @json($comment->pseudo))" class="text-purple-600 text-sm hover:text-purple-800 font-medium">
+    <button
+        type="button"
+        class="js-reply-btn text-purple-600 text-sm hover:text-purple-800 font-medium"
+        data-comment-id="{{ $comment->id }}"
+        data-author-name="{{ $comment->pseudo }}"
+    >
         ↩ Répondre
     </button>
 
